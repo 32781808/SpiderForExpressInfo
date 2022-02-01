@@ -309,7 +309,6 @@ if __name__ == '__main__':
                 continue
             spider_express.run_auto_slide(item)  # 自动滑块
             # sparse_express.run_manual_slide(item)     # 手动滑块
-            pass
-        if "验证失败" not in spider_express.get_query_state():
+        if "验证失败" not in spider_express.get_query_state().values():
             break
         pass
