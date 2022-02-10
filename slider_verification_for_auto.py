@@ -10,6 +10,7 @@ import time
 from PIL import Image
 import numpy as np
 import pandas as pd
+import win32api,win32con
 
 
 class SpiderExpress(object):
@@ -69,7 +70,6 @@ class SpiderExpress(object):
         try:
             success_image = WebDriverWait(self.driver, 5, 0.5).until(EC.presence_of_element_located(success_element))
             if success_image:
-                print('验证成功')
                 js = "window.scrollBy(0,350)"
                 self.driver.execute_script(js)
                 time.sleep(2)
@@ -94,16 +94,20 @@ class SpiderExpress(object):
         routes_location = routes_locate.location
         routes_size = routes_locate.size
 
+        x = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)  # 获得屏幕分辨率X轴
+        y = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)  # 获得屏幕分辨率Y轴
+
         rangle = (
-            map_location['x'],
-            map_location['y'] - 350,
-            map_location['x'] + map_size['width'],
-            map_location['y'] - 350 + map_size['height'] + routes_size['height']
+            map_location['x'] * int(x/1920) + 100,
+            map_location['y'] *int(y/925)- 290,
+            map_location['x'] *int(x/1920)+100+ map_size['width']+300,
+            map_location['y'] *int(y/925)- 290 + map_size['height'] + routes_size['height']
         )
         time.sleep(1)
         self.driver.save_screenshot("./express_info_picture.png")
         express_img = Image.open("./express_info_picture.png")
         express_img = express_img.convert('RGB')
+        express_img = express_img.resize((1920, 925), Image.ANTIALIAS)
         picture_crop = express_img.crop(rangle)
         self.mkdir()
         picture_crop.save("./picture/{}.png".format(express_number))
@@ -117,7 +121,7 @@ class SpiderExpress(object):
         img_verification = Image.open("./all_screen.png")
         img_verification = img_verification.convert("L")
         rangle = self.__verification_picture_rangle()
-        img_verification.crop(rangle)
+        img_verification = img_verification.resize((1920, 925), Image.ANTIALIAS)
 
         return img_verification.crop(rangle)
 
@@ -299,7 +303,7 @@ class SpiderExpress(object):
 
 
 if __name__ == '__main__':
-    spider_express = SpiderExpress("https://www.sf-express.com/cn/sc/dynamic_function/waybill/#search/bill-number/")
+    spider_express = SpiderExpress("")
     expree_nums = spider_express.get_express_number('新建 Microsoft Excel 工作表(1).xlsx')
     picture_path = spider_express.mkdir()
     while True:
